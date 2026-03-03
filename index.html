@@ -123,6 +123,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 .hm-btn-r{background:linear-gradient(135deg,#2d0060,#7b2fff);}
 .hm-btn-x{background:linear-gradient(135deg,#1a1a2e,#3d3d5c);}
 .hm-btn-q{background:linear-gradient(135deg,#1a3a00,#00c853);color:#000;}
+.hm-btn-z{background:linear-gradient(135deg,#003040,#006080);color:#fff;}
 
 /* RARITY CHIPS */
 .rarity-strip{display:flex;gap:5px;padding:0 14px 14px;overflow-x:auto;}
@@ -392,11 +393,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 .dslot{width:80px;height:106px;border-radius:12px;overflow:hidden;border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:border-color .2s;}
 .dslot.filled{border-style:solid;border-color:rgba(255,255,255,.3);}
 .dslot img{width:100%;height:100%;object-fit:cover;}
-.dslot .dslot-rm{position:absolute;top:3px;right:3px;background:rgba(200,0,0,.8);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;cursor:pointer;}
+/* ×ボタン削除 - タッチで外れる仕様に変更 */
 .dslot .dslot-add{font-size:1.5rem;color:rgba(255,255,255,.2);}
 .dslot .dslot-lv{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:.42rem;font-weight:900;color:var(--gold);background:rgba(0,0,0,.75);padding:2px 0;border-radius:0 0 10px 10px;}
 .dslot.swap-active{border-color:var(--gold)!important;box-shadow:0 0 12px rgba(255,215,0,.5);}
 .dslot.drag-over{border-color:#00e5ff!important;box-shadow:0 0 16px rgba(0,229,255,.6);transform:scale(1.06);}
+/* タッチヒント */
+.dslot.filled .dslot-remove-hint{position:absolute;top:3px;right:3px;background:rgba(255,0,0,.65);border-radius:4px;padding:1px 4px;font-size:.38rem;color:#fff;font-weight:900;z-index:5;}
 .pick-card{aspect-ratio:2/3;border-radius:8px;overflow:hidden;position:relative;cursor:grab;transition:transform .1s;user-select:none;-webkit-user-select:none;}
 .pick-card.dragging{opacity:.4;transform:scale(.92);}
 .pick-card .pick-lv{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:.38rem;font-weight:900;color:var(--gold);background:rgba(0,0,0,.75);padding:2px 0;z-index:3;}
@@ -537,6 +540,26 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   pointer-events:auto;
 }
 .title-delete-btn:active{background:rgba(255,40,40,.25);color:#ff5252;}
+
+/* ═══════════════════
+   図鑑 PAGE
+═══════════════════ */
+#page-zukan{padding:0 13px 16px;}
+.zukan-ph{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;}
+.zukan-ph h2{font-family:'Cinzel Decorative',serif;font-size:clamp(.88rem,4vw,1.2rem);
+  background:linear-gradient(135deg,#00cfff,#cc00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;flex:1;text-align:center;}
+.zukan-stats{display:flex;gap:8px;margin-bottom:12px;}
+.zukan-stat{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 6px;text-align:center;}
+.zukan-stat .zsv{font-size:1rem;font-weight:900;color:var(--gold);}
+.zukan-stat .zsl{font-size:.5rem;color:rgba(255,255,255,.3);margin-top:1px;}
+.zukan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.zukan-card{aspect-ratio:3/4;border-radius:10px;overflow:hidden;position:relative;animation:fadeup .25s ease forwards;}
+.zukan-card.obtained{cursor:pointer;transition:transform .12s;}
+.zukan-card.obtained:active{transform:scale(.93);}
+.zukan-card.unknown{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);}
+.zukan-card .z-num{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:.42rem;color:rgba(255,255,255,.3);background:rgba(0,0,0,.6);padding:2px 0;}
+.zukan-card.unknown .z-mark{width:100%;height:calc(100% - 18px);display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:rgba(255,255,255,.15);font-weight:900;}
+.zukan-section-title{font-size:.54rem;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;margin:12px 0 8px;padding-left:2px;}
 </style>
 </head>
 <body>
@@ -610,6 +633,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
     <div class="char-lv-badge" id="cdLv">Lv.1</div>
     <div class="char-count-row" id="cdCnt">所持数: 1</div>
     <div id="cdRarity" style="font-size:.62rem;font-weight:900;letter-spacing:2px;margin-bottom:8px;"></div>
+    <!-- バトル攻撃力表示 -->
+    <div id="cdBattlePower" style="background:rgba(0,200,83,.09);border:1px solid rgba(0,200,83,.3);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:.62rem;color:rgba(255,255,255,.7);text-align:center;">
+      ⚔️ バトル攻撃力（1クリック）: <span id="cdBattlePowerVal" style="font-weight:900;color:var(--c-common);font-size:.82rem;">0</span>
+    </div>
     <div class="sell-info">
       <div>売却ポイント: <span class="si-pts" id="cdSellPts">0</span>pt</div>
       <div id="cdMergeCost" style="margin-top:3px;"></div>
@@ -648,7 +675,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 <div class="overlay" id="deckModal">
   <div class="modal-box">
     <h3>デッキ編成</h3>
-    <div style="font-size:.62rem;color:rgba(255,255,255,.4);margin-bottom:6px;">スロットをタップして変更</div>
+    <div style="font-size:.62rem;color:rgba(255,255,255,.4);margin-bottom:6px;">スロットをタップして変更 · キャラをタッチで外す</div>
     <div class="deck-slots-grid" id="deckSlots"></div>
     <button class="close-btn" onclick="closeOverlay('deckModal')">完了</button>
   </div>
@@ -706,13 +733,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
     <div class="hm-stat"><div class="hsv" id="hmBox">0</div><div class="hsl">BOX数</div></div>
   </div>
 
-  <!-- リセットボタンを削除し、メニューは5ボタン構成に変更 -->
   <div class="hm-menu" style="grid-template-columns:repeat(2,1fr) repeat(2,1fr);grid-template-rows:auto auto;">
     <button class="hm-btn hm-btn-g" onclick="goTo('gacha')"><span class="hbi">⚔️</span>ガチャ</button>
     <button class="hm-btn hm-btn-s" onclick="goTo('shop')"><span class="hbi">💳</span>ショップ</button>
     <button class="hm-btn hm-btn-b" onclick="goTo('box')"><span class="hbi">📦</span>BOX</button>
     <button class="hm-btn hm-btn-r" onclick="openDeckEditModal()"><span class="hbi">🛡️</span>デッキ</button>
-    <button class="hm-btn hm-btn-q" onclick="goTo('quest')" style="grid-column:span 2;"><span class="hbi">🎯</span>バトル</button>
+    <button class="hm-btn hm-btn-q" onclick="goTo('quest')" style="grid-column:span 1;"><span class="hbi">🎯</span>バトル</button>
+    <button class="hm-btn hm-btn-z" onclick="goTo('zukan')" style="grid-column:span 1;"><span class="hbi">📖</span>図鑑</button>
   </div>
 
   <div class="rarity-strip">
@@ -772,7 +799,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
       <span class="pcost">💎×50</span><div>１０連召喚</div><span class="psub">ダイヤ 50個消費</span>
     </button>
   </div>
-  <!-- ガチャページのデータリセットボタンを削除 -->
 </div>
 
 <!-- BOX -->
@@ -860,7 +886,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
         <div style="font-size:2.5rem;margin-bottom:8px;">⚔️</div>
         <div style="font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold);margin-bottom:6px;">ブレインロッドバトル</div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:14px;">
-          60秒間クリックしてブレインロッドを倒せ！<br>
+          10秒間クリックしてブレインロッドを倒せ！<br>
           デッキのキャラのレアリティ・レベルで<br>
           ダメージが増加する！
         </div>
@@ -895,7 +921,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div style="background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.3);border-radius:10px;padding:8px 16px;">
           <div style="font-size:.55rem;color:rgba(255,255,255,.4);">残り時間</div>
-          <div id="questTimer" style="font-size:1.6rem;font-weight:900;color:#ff5252;">60</div>
+          <div id="questTimer" style="font-size:1.6rem;font-weight:900;color:#ff5252;">10</div>
         </div>
         <div style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:8px 16px;">
           <div style="font-size:.55rem;color:rgba(255,255,255,.4);">スコア</div>
@@ -940,6 +966,23 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   </div>
 </div>
 
+<!-- 図鑑 PAGE -->
+<div class="page" id="page-zukan">
+  <div style="padding:0 13px 16px;">
+    <div class="zukan-ph">
+      <div style="width:64px"></div>
+      <h2>図 鑑</h2>
+      <div style="width:64px"></div>
+    </div>
+    <div class="zukan-stats">
+      <div class="zukan-stat"><div class="zsv" id="zukanObtained">0</div><div class="zsl">取得済み</div></div>
+      <div class="zukan-stat"><div class="zsv" id="zukanTotal">0</div><div class="zsl">総キャラ数</div></div>
+      <div class="zukan-stat"><div class="zsv" id="zukanPct" style="color:var(--c-common)">0%</div><div class="zsl">コンプ率</div></div>
+    </div>
+    <div id="zukanContent"></div>
+  </div>
+</div>
+
 <!-- NAV -->
 <div id="nav">
   <button class="nb on" id="nav-home"  onclick="goTo('home')"><span class="ni">🏠</span>ホーム</button>
@@ -947,6 +990,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   <button class="nb"    id="nav-box"   onclick="goTo('box')"><span class="ni">📦</span>BOX</button>
   <button class="nb"    id="nav-shop"  onclick="goTo('shop')"><span class="ni">💳</span>ショップ</button>
   <button class="nb"    id="nav-quest" onclick="goTo('quest')"><span class="ni">🎯</span>バトル</button>
+  <button class="nb"    id="nav-zukan" onclick="goTo('zukan')"><span class="ni">📖</span>図鑑</button>
 </div>
 
 <script>
@@ -1108,6 +1152,7 @@ function goTo(p){
   if(p==='box'){if(bulkSellMode)cancelBulkSell();renderBox();}
   if(p==='home'){syncHome();renderCarousel();}
   if(p==='quest'){updateQuestIdleUI();}
+  if(p==='zukan'){renderZukan();}
 }
 
 // ══════════════════════════════════════════
@@ -1523,6 +1568,16 @@ function renderBox(){
 let selectedCharId=null;
 let selectedCharCi=0;
 
+// キャラの攻撃力計算（バトル時）
+const RARITY_POWER={common:1,rare:3,epic:8,legend:20,secret:50,god:150};
+
+function calcCharBattlePower(item, ci){
+  if(!item)return 0;
+  const lv=(item.levels&&item.levels[ci])||item.level||1;
+  const base=RARITY_POWER[item.rarity]||1;
+  return Math.floor(base*(1+lv*0.5));
+}
+
 function openCharDetail(id, ci=0){
   selectedCharId=id;
   selectedCharCi=ci;
@@ -1544,6 +1599,11 @@ function openCharDetail(id, ci=0){
   document.getElementById('cdSellPts').textContent=sp;
   const mc=MERGE_COST[item.rarity];
   document.getElementById('cdMergeCost').textContent=`合成コスト: ${mc}pt（ダブり1体＋ポイント消費でLv上昇）`;
+
+  // バトル攻撃力表示
+  const battlePow=calcCharBattlePower(item, ci);
+  document.getElementById('cdBattlePowerVal').textContent=battlePow.toLocaleString();
+
   const ciInDeck=S.deck.some(d=>d&&d.imgId===String(id)&&d.ci===ci);
   const hasMaterial=item.count>=2&&Array.from({length:item.count},(_,i2)=>i2).some(
     i2=>i2!==ci&&!S.deck.some(d=>d&&d.imgId===String(id)&&d.ci===i2)
@@ -1714,6 +1774,7 @@ document.getElementById('carouselArena').addEventListener('touchend',e=>{
 
 let deckSwapFrom=null;
 
+// ×ボタン廃止: スロット内のキャラをタッチするとデッキから外れる
 function buildDeckSlotEl(i, activeSlotForPick){
   const ds=document.createElement('div');
   const entry=S.deck[i];
@@ -1723,10 +1784,17 @@ function buildDeckSlotEl(i, activeSlotForPick){
     const lv=(item.levels&&item.levels[entry.ci])||item.level||1;
     const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:100%;';
     iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;border-radius:10px;'));
-    const rm=document.createElement('div');rm.className='dslot-rm';rm.textContent='×';
-    rm.onclick=(e)=>{e.stopPropagation();S.deck[i]=null;save();renderCarousel();renderDeckModal(activeSlotForPick);};
     const lvEl=document.createElement('div');lvEl.className='dslot-lv';lvEl.textContent=`Lv.${lv}`;
-    ds.appendChild(iw);ds.appendChild(rm);ds.appendChild(lvEl);
+    // タッチで外れるヒント
+    const hint=document.createElement('div');hint.className='dslot-remove-hint';hint.textContent='タッチで外す';
+    ds.appendChild(iw);ds.appendChild(lvEl);ds.appendChild(hint);
+    // タッチでデッキから外れる
+    ds.onclick=(e)=>{
+      e.stopPropagation();
+      S.deck[i]=null;
+      save();renderCarousel();renderDeckModal(activeSlotForPick);
+      showToast('デッキから外しました');
+    };
   }else{
     ds.innerHTML='<span class="dslot-add">＋</span>';
     ds.onclick=()=>renderPickList(i);
@@ -1759,7 +1827,7 @@ function renderPickList(forSlot){
     pickDiv.style.cssText='margin-top:12px;max-height:240px;overflow-y:auto;';
     document.getElementById('deckModal').querySelector('.modal-box').insertBefore(pickDiv,document.getElementById('deckModal').querySelector('.close-btn'));
   }
-  pickDiv.innerHTML='<div style="font-size:.56rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:8px;text-align:left;">タップで空きスロットに追加 · スロットをタップして変更</div>';
+  pickDiv.innerHTML='<div style="font-size:.56rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:8px;text-align:left;">タップで追加 · スロットタッチで外す</div>';
   const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:6px;';
 
   Object.values(S.box).sort((a,b)=>RO[b.rarity]-RO[a.rarity]).forEach(item=>{
@@ -1830,6 +1898,78 @@ function addToDeck(){
 function openDeckEditModal(){openDeckSlot(0);}
 
 // ══════════════════════════════════════════
+// 図鑑
+// ══════════════════════════════════════════
+function getAllCharIds(){
+  // 全キャラIDをレアリティ順にリスト化
+  const order=['god','secret','legend','epic','rare','common'];
+  const all=[];
+  order.forEach(r=>{
+    IMG_POOL[r].forEach(id=>{
+      all.push({id:String(id),rarity:r});
+    });
+  });
+  return all;
+}
+
+function renderZukan(){
+  const allChars=getAllCharIds();
+  const totalCount=allChars.length;
+  const obtainedSet=new Set(Object.keys(S.box));
+  const obtainedCount=allChars.filter(c=>obtainedSet.has(c.id)).length;
+  const pct=totalCount>0?Math.floor(obtainedCount/totalCount*100):0;
+
+  document.getElementById('zukanObtained').textContent=obtainedCount;
+  document.getElementById('zukanTotal').textContent=totalCount;
+  document.getElementById('zukanPct').textContent=pct+'%';
+
+  const container=document.getElementById('zukanContent');
+  container.innerHTML='';
+
+  const rarityOrder=['god','secret','legend','epic','rare','common'];
+  const rarityLabels={god:'★ GOD ★',secret:'SECRET',legend:'LEGEND',epic:'EPIC',rare:'RARE',common:'COMMON'};
+
+  rarityOrder.forEach(rar=>{
+    const chars=IMG_POOL[rar];
+    if(!chars||!chars.length)return;
+
+    const secTitle=document.createElement('div');
+    secTitle.className='zukan-section-title';
+    secTitle.textContent=rarityLabels[rar];
+    secTitle.style.color=RCOL[rar];
+    container.appendChild(secTitle);
+
+    const grid=document.createElement('div');
+    grid.className='zukan-grid';
+
+    chars.forEach((imgId,idx)=>{
+      const id=String(imgId);
+      const obtained=obtainedSet.has(id);
+      const card=document.createElement('div');
+      card.className='zukan-card '+(obtained?`r-${rar} obtained`:'unknown');
+
+      if(obtained){
+        const item=S.box[id];
+        const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 18px);overflow:hidden;';
+        iw.appendChild(makeImg(imgId,'width:100%;height:100%;object-fit:cover;'));
+        const badge=document.createElement('div');badge.className='rbadge';badge.textContent=RL[rar];
+        const lv=document.createElement('div');lv.className='mc-lv';lv.textContent=`Lv.${item.level||1}`;
+        card.appendChild(lv);card.appendChild(iw);card.appendChild(badge);
+        card.onclick=()=>openCharDetail(id,0);
+      }else{
+        const qmark=document.createElement('div');qmark.className='z-mark';qmark.textContent='?';
+        const numEl=document.createElement('div');numEl.className='z-num';numEl.textContent='???';
+        card.appendChild(qmark);card.appendChild(numEl);
+      }
+
+      grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+  });
+}
+
+// ══════════════════════════════════════════
 // SHOP
 // ══════════════════════════════════════════
 let pendingBuy=null;
@@ -1863,9 +2003,8 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ══════════════════════════════════════════
 // QUEST / CLICKER GAME
 // ══════════════════════════════════════════
-const RARITY_POWER={common:1,rare:3,epic:8,legend:20,secret:50,god:150};
 let questTimerInterval=null;
-let questTimeLeft=60;
+let questTimeLeft=10;
 let questCurrentScore=0;
 let questClickPower=1;
 
@@ -1894,7 +2033,7 @@ let questTapHandler=null;
 let questTouchHandler=null;
 
 function startClickerGame(){
-  questTimeLeft=60;
+  questTimeLeft=10;
   questCurrentScore=0;
   questClickPower=calcDeckPower();
 
@@ -1902,7 +2041,7 @@ function startClickerGame(){
   document.getElementById('questResult').style.display='none';
   document.getElementById('questActive').style.display='block';
   document.getElementById('questScore').textContent='0';
-  document.getElementById('questTimer').textContent='60';
+  document.getElementById('questTimer').textContent='10';
   document.getElementById('questClickPow').textContent='+'+questClickPower.toLocaleString();
   document.getElementById('nav').style.display='none';
   document.getElementById('page-quest').style.paddingBottom='0';
@@ -1937,7 +2076,7 @@ function startClickerGame(){
     questTimeLeft--;
     const timerEl=document.getElementById('questTimer');
     if(timerEl)timerEl.textContent=questTimeLeft;
-    if(questTimeLeft<=10&&timerEl){timerEl.style.color='#ff1744';timerEl.style.animation='shake .3s infinite';}
+    if(questTimeLeft<=5&&timerEl){timerEl.style.color='#ff1744';timerEl.style.animation='shake .3s infinite';}
     if(questTimeLeft<=0){
       clearInterval(questTimerInterval);
       questTimerInterval=null;
@@ -2054,6 +2193,5 @@ syncAll();renderPurLog();renderCarousel();updateQuestIdleUI();
 </script>
 </body>
 </html>
-
 
 
