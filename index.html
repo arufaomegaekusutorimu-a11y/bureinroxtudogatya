@@ -521,8 +521,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 <div id="gScreen">
   <canvas id="gCvs"></canvas>
   <div id="gContent"></div>
-  <button class="skip-btn" id="skipBtn" onclick="skipAll()">スキップ ▶</button>
-  <div class="tap-hint" id="tapHint" style="display:none">タップして次へ</div>
+  <div style="position:absolute;bottom:72px;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;">
+    <button class="skip-btn" id="skipBtn" onclick="skipAll()" style="pointer-events:auto;background:linear-gradient(135deg,#7b2fff,#ff2dce);color:#fff;border:none;border-radius:20px;padding:9px 28px;font-family:'Noto Sans JP',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(123,47,255,.6);">⏭ スキップ</button>
+    <div class="tap-hint" id="tapHint" style="display:none;position:static;transform:none;pointer-events:none;">タップして次へ</div>
+  </div>
 </div>
 
 <!-- HOME -->
@@ -752,7 +754,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
     </div>
 
     <!-- Active game area -->
-    <div id="questActive" style="display:none;text-align:center;" onclick="doQuestClick()">
+    <div id="questActive" style="display:none;text-align:center;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div style="background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.3);border-radius:10px;padding:8px 16px;">
           <div style="font-size:.55rem;color:rgba(255,255,255,.4);">残り時間</div>
@@ -983,8 +985,14 @@ function triggerPull(n){
   res.forEach(r=>{
     if(RO[r.rarity]>=3)S.highRares++;
     const k=String(r.imgId);
-    if(S.box[k]){S.box[k].count++;S.box[k].isNew=false;}
-    else{S.box[k]={rarity:r.rarity,imgId:r.imgId,level:1,count:1,isNew:true};}
+    if(S.box[k]){
+      S.box[k].count++;
+      if(!S.box[k].levels)S.box[k].levels=[S.box[k].level||1];
+      S.box[k].levels.push(1); // 新しいコピーはLv1
+      S.box[k].isNew=false;
+    }else{
+      S.box[k]={rarity:r.rarity,imgId:r.imgId,level:1,levels:[1],count:1,isNew:true};
+    }
   });
   save();syncAll();
   pendingRes=res;
@@ -1297,19 +1305,23 @@ function renderBox(){
   if(!sorted.length){grid.innerHTML=`<div class="box-empty"><span class="ei">📭</span>モンスターがいません</div>`;return;}
   const mg=document.createElement('div');mg.className='mgrid';
   sorted.forEach(item=>{
+    // levels配列がなければ互換レガシー対応
+    if(!item.levels||item.levels.length<item.count){
+      item.levels=Array.from({length:item.count},(_,i)=>item.levels?.[i]??item.level??1);
+    }
     const displayCount=item.count||1;
     for(let ci=0;ci<displayCount;ci++){
+      const copyLv=item.levels[ci]||1;
       const c=document.createElement('div');c.className=`mc r-${item.rarity}`;
       const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 18px);overflow:hidden;';
       iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
       const badge=document.createElement('div');badge.className='rbadge';badge.textContent=RL[item.rarity];
-      const lv=document.createElement('div');lv.className='mc-lv';lv.textContent=`Lv.${item.level}`;
+      const lv=document.createElement('div');lv.className='mc-lv';lv.textContent=`Lv.${copyLv}`;
       if(item.isNew&&ci===0){const nw=document.createElement('div');nw.className='mc-new';nw.textContent='NEW';c.appendChild(nw);}
       c.appendChild(lv);c.appendChild(iw);c.appendChild(badge);
 
       // 一括売却モード or 通常モード
       if(bulkSellMode){
-        // 選択済みチェック
         const selIdx=bulkSelected.findIndex(s=>s.imgId===String(item.imgId)&&s.ci===ci);
         if(selIdx>=0)c.classList.add('bulk-selected');
         c.onclick=()=>{
@@ -1318,15 +1330,13 @@ function renderBox(){
           else{bulkSelected.push({imgId:String(item.imgId),ci});c.classList.add('bulk-selected');}
           updateBulkBar();
         };
-        // 長押しは一括売却モード内では不要
       }else{
-        // 長押しで一括売却モード開始
         let longTimer=null;
         c.addEventListener('touchstart',()=>{longTimer=setTimeout(()=>{longTimer=null;enterBulkSell();},600);},{passive:true});
         c.addEventListener('touchend',()=>{clearTimeout(longTimer);longTimer=null;},{passive:true});
         c.addEventListener('mousedown',()=>{longTimer=setTimeout(()=>{longTimer=null;enterBulkSell();},600);});
         c.addEventListener('mouseup',()=>{clearTimeout(longTimer);longTimer=null;});
-        c.onclick=()=>openCharDetail(String(item.imgId));
+        c.onclick=()=>openCharDetail(String(item.imgId),ci);
       }
       mg.appendChild(c);
     }
@@ -1338,16 +1348,23 @@ function renderBox(){
 // CHAR DETAIL
 // ══════════════════════════════════════════
 let selectedCharId=null;
-function openCharDetail(id){
+let selectedCharCi=0; // 選択中のコピーインデックス
+
+function openCharDetail(id, ci=0){
   selectedCharId=id;
+  selectedCharCi=ci;
   const item=S.box[id];if(!item)return;
   item.isNew=false;save();
-  // image
+  // levels配列の互換保証
+  if(!item.levels||item.levels.length<item.count){
+    item.levels=Array.from({length:item.count},(_,i)=>item.levels?.[i]??item.level??1);
+  }
+  const copyLv=item.levels[ci]||1;
   const imgBox=document.getElementById('cdImg');imgBox.innerHTML='';imgBox.className=`char-detail-img r-${item.rarity}`;
   const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:100%;';
   iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
   imgBox.appendChild(iw);
-  document.getElementById('cdLv').textContent=`Lv.${item.level}`;
+  document.getElementById('cdLv').textContent=`Lv.${copyLv}`;
   document.getElementById('cdCnt').textContent=`所持数: ${item.count}体`;
   document.getElementById('cdRarity').textContent=RL[item.rarity];
   document.getElementById('cdRarity').style.color=RCOL[item.rarity];
@@ -1356,7 +1373,6 @@ function openCharDetail(id){
   const mc=MERGE_COST[item.rarity];
   document.getElementById('cdMergeCost').textContent=`合成コスト: ${mc}pt（ダブり1体＋ポイント消費でLv上昇）`;
   document.getElementById('cdBtnSell').disabled=item.count<1;
-  // merge: need count>=2 AND points>=cost
   document.getElementById('cdBtnMerge').disabled=item.count<2||S.points<mc;
   openOverlay('charModal');
 }
@@ -1384,11 +1400,23 @@ function doMerge(){
   const item=S.box[selectedCharId];if(!item||item.count<2)return;
   const mc=MERGE_COST[item.rarity];
   if(S.points<mc){showToast('ポイントが足りません！');return;}
+  // levels配列の互換保証
+  if(!item.levels||item.levels.length<item.count){
+    item.levels=Array.from({length:item.count},(_,i)=>item.levels?.[i]??item.level??1);
+  }
+  const ci=selectedCharCi;
   document.getElementById('confirmMsg').textContent=`#${item.imgId}を合成します。\nダブり1体消費 ＋ ${mc}ptを使用してLvを上げます。`;
   document.getElementById('confirmOkBtn').onclick=()=>{
-    item.count--;item.level++;S.points-=mc;
-    save();syncAll();renderBox();closeOverlay('confirmOverlay');openCharDetail(selectedCharId);
-    playMerge();showToast(`⚡ 合成完了！ Lv.${item.level}になった！`);
+    // 最後のコピーを消費（末尾から削除）
+    item.levels.splice(item.count-1,1);
+    item.count--;
+    // 選択したコピーのlevelを上げる
+    item.levels[ci]=(item.levels[ci]||1)+1;
+    item.level=Math.max(...item.levels); // 互換用に最高lvをセット
+    S.points-=mc;
+    save();syncAll();renderBox();closeOverlay('confirmOverlay');
+    openCharDetail(selectedCharId,ci);
+    playMerge();showToast(`⚡ 合成完了！ Lv.${item.levels[ci]}になった！`);
   };
   closeOverlay('charModal');openOverlay('confirmOverlay');
 }
@@ -1463,30 +1491,30 @@ function buildDeckSlotEl(i, activeSlotForPick){
     rm.onclick=(e)=>{e.stopPropagation();S.deck[i]=null;deckSwapFrom=null;save();renderCarousel();renderDeckModal(activeSlotForPick);};
     const lv=document.createElement('div');lv.className='dslot-lv';lv.textContent=`Lv.${item.level}`;
     ds.appendChild(iw);ds.appendChild(rm);ds.appendChild(lv);
-
-    // 長押しでスロット間ドラッグ
-    attachSlotDrag(ds, i, activeSlotForPick);
   }else{
     ds.innerHTML='<span class="dslot-add">＋</span>';
   }
   ds.onclick=()=>{
-    if(dragItem)return; // ドラッグ中はonclick無視
     if(deckSwapFrom===null){
       if(S.deck[i]&&S.box[S.deck[i]]){
+        // キャラ入りスロット → スワップ元に設定
         deckSwapFrom=i;
         renderDeckModal(i);
         const hint=document.getElementById('deckSwapHint');
         if(hint){hint.textContent='✦ 入れ替え先スロットをタップ（もう一度タップでキャンセル）';hint.style.color='rgba(255,215,0,.7)';}
       }else{
+        // 空きスロット → ピックリスト表示
         renderPickList(i);
       }
     }else{
       if(deckSwapFrom===i){
+        // 同じスロット → キャンセル
         deckSwapFrom=null;
         renderDeckModal(i);
         const hint=document.getElementById('deckSwapHint');
         if(hint){hint.textContent='スロットをタップして選択→別スロットで入れ替え';hint.style.color='rgba(255,255,255,.3)';}
       }else{
+        // 別スロット → 入れ替え実行
         const tmp=S.deck[deckSwapFrom];
         S.deck[deckSwapFrom]=S.deck[i];
         S.deck[i]=tmp;
@@ -1500,76 +1528,6 @@ function buildDeckSlotEl(i, activeSlotForPick){
     }
   };
   return ds;
-}
-
-// スロット間ドラッグ
-function attachSlotDrag(el, fromSlot, activeSlotForPick){
-  const ghost=document.getElementById('dragGhost');
-  let slotDragActive=false;
-  let slotLongTimer=null;
-
-  const startSlotDrag=(cx,cy)=>{
-    slotDragActive=true;
-    const cid=S.deck[fromSlot];
-    const item=S.box[cid];
-    if(!item)return;
-    ghost.innerHTML='';ghost.style.display='block';ghost.style.width='60px';ghost.style.height='80px';
-    ghost.style.borderRadius='10px';ghost.style.overflow='hidden';ghost.style.pointerEvents='none';
-    ghost.style.zIndex='9999';ghost.style.opacity='.85';ghost.style.transform='translate(-50%,-50%)';
-    ghost.className=`r-${item.rarity}`;
-    ghost.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
-    ghost.style.left=cx+'px';ghost.style.top=cy+'px';
-    el.style.opacity='.4';
-  };
-
-  const endSlotDrag=(cx,cy)=>{
-    if(!slotDragActive)return;
-    slotDragActive=false;
-    ghost.style.display='none';
-    el.style.opacity='';
-    const slotsDiv=document.getElementById('deckSlots');
-    if(slotsDiv){
-      slotsDiv.querySelectorAll('.dslot').forEach((sl,i)=>{
-        sl.classList.remove('drag-over');
-        if(i===fromSlot)return;
-        const r=sl.getBoundingClientRect();
-        if(cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom){
-          const tmp=S.deck[fromSlot];S.deck[fromSlot]=S.deck[i];S.deck[i]=tmp;
-          save();renderCarousel();renderDeckModal(activeSlotForPick);
-          showToast('⇄ キャラを入れ替えました！');
-        }
-      });
-    }
-  };
-
-  el.addEventListener('touchstart',e=>{
-    const t=e.touches[0];
-    slotLongTimer=setTimeout(()=>{slotLongTimer=null;startSlotDrag(t.clientX,t.clientY);},350);
-  },{passive:true});
-  el.addEventListener('touchmove',e=>{
-    if(slotLongTimer){clearTimeout(slotLongTimer);slotLongTimer=null;}
-    if(!slotDragActive)return;
-    e.preventDefault();
-    const t=e.touches[0];
-    ghost.style.left=t.clientX+'px';ghost.style.top=t.clientY+'px';
-    const slotsDiv=document.getElementById('deckSlots');
-    if(slotsDiv)slotsDiv.querySelectorAll('.dslot').forEach(sl=>{
-      sl.classList.remove('drag-over');
-      const r=sl.getBoundingClientRect();
-      if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)sl.classList.add('drag-over');
-    });
-  },{passive:false});
-  el.addEventListener('touchend',e=>{
-    clearTimeout(slotLongTimer);slotLongTimer=null;
-    if(!slotDragActive)return;
-    const t=e.changedTouches[0];
-    endSlotDrag(t.clientX,t.clientY);
-  },{passive:true});
-  el.addEventListener('mousedown',e=>{
-    slotLongTimer=setTimeout(()=>{slotLongTimer=null;startSlotDrag(e.clientX,e.clientY);},350);
-  });
-  window.addEventListener('mousemove',e=>{if(slotDragActive){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';}});
-  el.addEventListener('mouseup',e=>{clearTimeout(slotLongTimer);slotLongTimer=null;if(slotDragActive)endSlotDrag(e.clientX,e.clientY);});
 }
 
 function openDeckSlot(slotIdx){
@@ -1597,7 +1555,7 @@ function renderPickList(forSlot){
     pickDiv.style.cssText='margin-top:12px;max-height:240px;overflow-y:auto;';
     document.getElementById('deckModal').querySelector('.modal-box').insertBefore(pickDiv,document.getElementById('deckModal').querySelector('.close-btn'));
   }
-  pickDiv.innerHTML='<div style="font-size:.56rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:8px;text-align:left;">スロット '+(forSlot+1)+' に設定　長押しでドラッグ＆ドロップも可</div>';
+  pickDiv.innerHTML='<div style="font-size:.56rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:8px;text-align:left;">タップで空きスロットに追加 · スロットをタップして変更</div>';
   const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:6px;';
 
   // 所持枚数ぶん展開
@@ -1608,9 +1566,8 @@ function renderPickList(forSlot){
   });
 
   allCopies.forEach(({item,ci})=>{
-    // このスロット以外で使用中の枚数を数える
+    // このコピーが他スロットで使用中かチェック
     const usedElsewhere=S.deck.filter((d,di)=>d===String(item.imgId)&&di!==forSlot).length;
-    // ci番目のコピーがusedElsewhere枚より少なければロック（別スロットで使用中）
     const isLocked=(ci < usedElsewhere);
 
     const c=document.createElement('div');
@@ -1620,7 +1577,8 @@ function renderPickList(forSlot){
     const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 14px);overflow:hidden;';
     iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
     const b=document.createElement('div');b.className='rbadge';b.style.fontSize='.38rem';b.textContent=RL[item.rarity];
-    const lv=document.createElement('div');lv.className='pick-lv';lv.textContent=`Lv.${item.level}`;
+    const copyLv=(item.levels&&item.levels[ci])||item.level||1;
+    const lv=document.createElement('div');lv.className='pick-lv';lv.textContent=`Lv.${copyLv}`;
     if(isLocked){
       const lk=document.createElement('div');lk.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:10;';lk.textContent='🔒';
       c.appendChild(lk);
@@ -1628,105 +1586,17 @@ function renderPickList(forSlot){
     c.appendChild(iw);c.appendChild(b);c.appendChild(lv);
 
     if(!isLocked){
-      // タップで選択
       c.addEventListener('click',()=>{
-        S.deck[forSlot]=String(item.imgId);save();renderCarousel();renderDeckModal(forSlot);
+        // 空きスロットを優先的に埋める、なければforSlotに上書き
+        const emptySlot=S.deck.indexOf(null);
+        const targetSlot=emptySlot>=0?emptySlot:forSlot;
+        S.deck[targetSlot]=String(item.imgId);
+        save();renderCarousel();renderDeckModal(targetSlot);
       });
-      // 長押しでドラッグ開始
-      attachPickDrag(c, item, forSlot);
     }
     grid.appendChild(c);
   });
   pickDiv.appendChild(grid);
-}
-
-// ══════════════════════════════════════════
-// DECK DRAG & DROP (long press)
-// ══════════════════════════════════════════
-let dragItem=null, dragForSlot=-1, dragLongTimer=null;
-
-function attachPickDrag(el, item, forSlot){
-  const ghost=document.getElementById('dragGhost');
-
-  const startDrag=(clientX,clientY)=>{
-    dragItem=item; dragForSlot=forSlot;
-    el.classList.add('dragging');
-    ghost.innerHTML='';
-    ghost.style.display='block';
-    ghost.style.width='52px';
-    ghost.style.height='78px';
-    ghost.style.position='fixed';
-    ghost.style.borderRadius='8px';
-    ghost.style.overflow='hidden';
-    ghost.style.pointerEvents='none';
-    ghost.style.zIndex='9999';
-    ghost.style.opacity='.85';
-    ghost.style.transform='translate(-50%,-50%)';
-    ghost.className=`r-${item.rarity}`;
-    const gi=makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;');
-    ghost.appendChild(gi);
-    moveGhost(clientX,clientY);
-  };
-
-  const moveGhost=(x,y)=>{ghost.style.left=x+'px';ghost.style.top=y+'px';};
-
-  const endDrag=(clientX,clientY)=>{
-    ghost.style.display='none';
-    el.classList.remove('dragging');
-    const slotsDiv=document.getElementById('deckSlots');
-    if(slotsDiv&&dragItem){
-      const dslots=slotsDiv.querySelectorAll('.dslot');
-      dslots.forEach((sl,i)=>{
-        sl.classList.remove('drag-over');
-        const rect=sl.getBoundingClientRect();
-        if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom){
-          S.deck[i]=String(dragItem.imgId);
-          save();renderCarousel();renderDeckModal(dragForSlot);
-        }
-      });
-    }
-    dragItem=null;
-  };
-
-  // touch
-  el.addEventListener('touchstart',e=>{
-    const t=e.touches[0];
-    dragLongTimer=setTimeout(()=>{startDrag(t.clientX,t.clientY);},380);
-  },{passive:true});
-  el.addEventListener('touchmove',e=>{
-    if(dragLongTimer){clearTimeout(dragLongTimer);dragLongTimer=null;}
-    if(!dragItem)return;
-    e.preventDefault();
-    const t=e.touches[0];
-    moveGhost(t.clientX,t.clientY);
-    const slotsDiv=document.getElementById('deckSlots');
-    if(slotsDiv){
-      slotsDiv.querySelectorAll('.dslot').forEach(sl=>{
-        sl.classList.remove('drag-over');
-        const r=sl.getBoundingClientRect();
-        if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)sl.classList.add('drag-over');
-      });
-    }
-  },{passive:false});
-  el.addEventListener('touchend',e=>{
-    clearTimeout(dragLongTimer);dragLongTimer=null;
-    if(!dragItem)return;
-    const t=e.changedTouches[0];
-    endDrag(t.clientX,t.clientY);
-  },{passive:true});
-
-  // mouse
-  el.addEventListener('mousedown',e=>{
-    dragLongTimer=setTimeout(()=>startDrag(e.clientX,e.clientY),300);
-  });
-  el.addEventListener('mousemove',e=>{
-    if(!dragItem)return;
-    moveGhost(e.clientX,e.clientY);
-  });
-  el.addEventListener('mouseup',e=>{
-    clearTimeout(dragLongTimer);dragLongTimer=null;
-    if(dragItem)endDrag(e.clientX,e.clientY);
-  });
 }
 
 function addToDeck(){
@@ -1809,6 +1679,10 @@ function updateQuestIdleUI(){
   if(bestEl)bestEl.textContent=(S.questBest||0).toLocaleString();
 }
 
+// クエストバトル用タップハンドラ（touchstart優先で全画面対応）
+let questTapHandler=null;
+let questTouchHandler=null;
+
 function startClickerGame(){
   questTimeLeft=60;
   questCurrentScore=0;
@@ -1820,9 +1694,22 @@ function startClickerGame(){
   document.getElementById('questScore').textContent='0';
   document.getElementById('questTimer').textContent='60';
   document.getElementById('questClickPow').textContent='+'+questClickPower.toLocaleString();
-  // NAVを隠す
   document.getElementById('nav').style.display='none';
   document.getElementById('page-quest').style.paddingBottom='0';
+
+  // 全画面タップ対応: touchstartで即反応(遅延なし)、clickは非タッチ端末用
+  const questPage=document.getElementById('page-quest');
+  questTouchHandler=(e)=>{
+    // ボタン系は無視
+    if(e.target.tagName==='BUTTON')return;
+    doQuestClick();
+  };
+  questTapHandler=(e)=>{
+    if(e.target.tagName==='BUTTON')return;
+    doQuestClick();
+  };
+  questPage.addEventListener('touchstart',questTouchHandler,{passive:true});
+  questPage.addEventListener('click',questTapHandler);
 
   // random monster face from box or emoji
   const monsters=['👹','👺','🐉','👾','💀','🧟','🦖','🦕','👿','😈'];
@@ -1882,9 +1769,12 @@ function doQuestClick(){
 function endClickerGame(){
   document.getElementById('questActive').style.display='none';
   document.getElementById('questResult').style.display='block';
-  // NAVを戻す
   document.getElementById('nav').style.display='flex';
   document.getElementById('page-quest').style.paddingBottom='';
+  // タップリスナー解除
+  const questPage=document.getElementById('page-quest');
+  if(questTouchHandler){questPage.removeEventListener('touchstart',questTouchHandler);questTouchHandler=null;}
+  if(questTapHandler){questPage.removeEventListener('click',questTapHandler);questTapHandler=null;}
 
   const score=questCurrentScore;
   // best score
@@ -1914,6 +1804,9 @@ function endClickerGame(){
 
 function resetQuestGame(){
   if(questTimerInterval){clearInterval(questTimerInterval);questTimerInterval=null;}
+  const questPage=document.getElementById('page-quest');
+  if(questTouchHandler){questPage.removeEventListener('touchstart',questTouchHandler);questTouchHandler=null;}
+  if(questTapHandler){questPage.removeEventListener('click',questTapHandler);questTapHandler=null;}
   document.getElementById('questResult').style.display='none';
   document.getElementById('questActive').style.display='none';
   document.getElementById('questIdle').style.display='block';
