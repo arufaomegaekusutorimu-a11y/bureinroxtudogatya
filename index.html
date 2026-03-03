@@ -832,7 +832,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   <div style="padding:0 13px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;">
       <div style="width:64px"></div>
-      <h2 style="font-family:'Cinzel Decorative',serif;font-size:clamp(.88rem,4vw,1.2rem);background:linear-gradient(135deg,#00c853,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;flex:1;text-align:center;">クエスト</h2>
+      <h2 style="font-family:'Cinzel Decorative',serif;font-size:clamp(.88rem,4vw,1.2rem);background:linear-gradient(135deg,#00c853,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;flex:1;text-align:center;">バトル</h2>
       <div style="width:64px"></div>
     </div>
 
@@ -895,7 +895,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
         </div>
         <div id="questDmgFloat" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);pointer-events:none;width:200px;text-align:center;"></div>
       </div>
-      <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-align:center;letter-spacing:2px;animation:blinkp 1s infinite;">⚡ 画面を連打して攻撃！</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-align:center;letter-spacing:2px;animation:blinkp 1s infinite;">⚡ ブレインロッドを連打して攻撃！</div>
     </div>
 
     <!-- Result area -->
@@ -1459,7 +1459,7 @@ function renderBox(){
   const grid=document.getElementById('monsterGrid');
   const sorted=entries.filter(e=>boxFilter==='all'||e.rarity===boxFilter)
     .sort((a,b)=>RO[b.rarity]-RO[a.rarity]||a.imgId-b.imgId);
-  if(!sorted.length){grid.innerHTML=`<div class="box-empty"><span class="ei">📭</span>モンスターがいません</div>`;return;}
+  if(!sorted.length){grid.innerHTML=`<div class="box-empty"><span class="ei">📭</span>ブレインロッドがいません</div>`;return;}
   const mg=document.createElement('div');mg.className='mgrid';
   sorted.forEach(item=>{
     // levels配列がなければ互換レガシー対応
@@ -1846,7 +1846,7 @@ function confirmBuy(){
   if(!pendingBuy)return;
   const{amt,price}=pendingBuy;
   S.gems+=amt;S.purLog.unshift({amt,price,time:new Date().toLocaleTimeString('ja-JP')});
-  save();closeOverlay('buyModal');syncAll();renderPurLog();playBuy();showToast(`💎 宝玉魂 ${amt}個 追加！`);
+  save();closeOverlay('buyModal');syncAll();renderPurLog();playBuy();showToast(`💎 ダイヤ ${amt}個 追加！`);
 }
 function renderPurLog(){
   const el=document.getElementById('purLog');
