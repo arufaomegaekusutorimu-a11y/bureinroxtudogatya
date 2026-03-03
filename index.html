@@ -228,6 +228,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 .mc .mc-lv{position:absolute;top:3px;left:3px;background:rgba(0,0,0,.7);color:var(--gold);font-size:.44rem;font-weight:900;border-radius:4px;padding:1px 5px;z-index:3;}
 .mc .mc-cnt{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);color:#fff;font-size:.42rem;font-weight:900;border-radius:4px;padding:1px 5px;z-index:3;}
 .mc .mc-new{position:absolute;top:20px;right:3px;background:linear-gradient(135deg,#ff2dce,#ff8c00);color:#fff;font-size:.42rem;font-weight:900;border-radius:4px;padding:1px 5px;z-index:3;animation:newblink .8s infinite alternate;}
+.mc .mc-deck{position:absolute;top:20px;left:3px;background:linear-gradient(135deg,#006080,#00e5ff);color:#000;font-size:.4rem;font-weight:900;border-radius:4px;padding:1px 5px;z-index:3;letter-spacing:.5px;}
+.mc.in-deck::after{content:'';position:absolute;inset:0;border-radius:10px;border:2px solid rgba(0,229,255,.85);box-shadow:inset 0 0 14px rgba(0,229,255,.35),0 0 14px rgba(0,229,255,.5);pointer-events:none;z-index:2;animation:deckglow 1.8s ease-in-out infinite;}
+@keyframes deckglow{0%,100%{box-shadow:inset 0 0 14px rgba(0,229,255,.35),0 0 14px rgba(0,229,255,.5);}50%{box-shadow:inset 0 0 22px rgba(0,229,255,.6),0 0 28px rgba(0,229,255,.85);}}
 @keyframes newblink{from{opacity:1;}to{opacity:.4;}}
 .box-empty{text-align:center;padding:46px 20px;color:rgba(255,255,255,.2);font-size:.8rem;}
 .box-empty .ei{font-size:3rem;display:block;margin-bottom:10px;}
@@ -432,9 +435,114 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 .shake{animation:shake .4s ease;}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:rgba(123,47,255,.35);border-radius:99px;}
+
+/* ═══ TITLE SCREEN ═══ */
+#titleScreen{
+  position:fixed;inset:0;z-index:2000;background:#020008;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;cursor:pointer;
+}
+#titleScreen.hidden{
+  animation:titleFadeOut .9s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+}
+@keyframes titleFadeOut{0%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1.04);}}
+
+#titleBg{position:absolute;inset:0;overflow:hidden;}
+.title-star{position:absolute;border-radius:50%;background:#fff;animation:tstarTwinkle var(--d,2s) ease-in-out infinite var(--delay,0s);}
+@keyframes tstarTwinkle{0%,100%{opacity:.15;transform:scale(1);}50%{opacity:1;transform:scale(1.6);}}
+
+.title-orb{
+  position:absolute;border-radius:50%;filter:blur(60px);animation:orbFloat var(--od,8s) ease-in-out infinite var(--odelay,0s) alternate;
+}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1);}100%{transform:translate(var(--ox,20px),var(--oy,-30px)) scale(1.15);}}
+
+#titleContent{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;gap:0;}
+
+.title-sub{
+  font-size:.62rem;letter-spacing:8px;color:rgba(255,215,0,.55);
+  text-transform:uppercase;margin-bottom:16px;
+  animation:titleSlideIn .8s cubic-bezier(.34,1.56,.64,1) .3s both;
+}
+@keyframes titleSlideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.title-logo-wrap{position:relative;margin-bottom:8px;}
+.title-logo{
+  font-family:'Cinzel Decorative',serif;
+  font-size:clamp(1.5rem,8vw,2.4rem);
+  line-height:1.2;
+  text-align:center;
+  background:linear-gradient(160deg,#fffbe0 0%,#FFD700 35%,#ff8c00 60%,#ff2dce 85%,#aa80ff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,215,0,.6));
+  animation:titleLogoIn 1s cubic-bezier(.34,1.56,.64,1) .5s both;
+  letter-spacing:2px;
+}
+@keyframes titleLogoIn{from{opacity:0;transform:scale(.7) translateY(30px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+.title-logo-glow{
+  position:absolute;inset:-20px;
+  background:radial-gradient(ellipse,rgba(255,215,0,.18) 0%,transparent 70%);
+  animation:glowPulse 2.5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes glowPulse{0%,100%{opacity:.6;}50%{opacity:1;}}
+
+.title-divider{
+  width:200px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,215,0,.6),rgba(255,45,206,.5),transparent);
+  margin:14px 0;
+  animation:titleSlideIn .8s cubic-bezier(.34,1.56,.64,1) .9s both;
+}
+
+.title-tagline{
+  font-size:.65rem;color:rgba(255,255,255,.38);letter-spacing:3px;
+  animation:titleSlideIn .8s .0s both, none;
+  animation:titleSlideIn .8s cubic-bezier(.34,1.56,.64,1) 1.1s both;
+  text-align:center;
+}
+
+.title-tap{
+  margin-top:52px;
+  font-size:.68rem;letter-spacing:5px;color:rgba(255,255,255,.28);
+  animation:tapBlink 2s ease-in-out 2s infinite;
+}
+@keyframes tapBlink{0%,100%{opacity:.2;}50%{opacity:.55;}}
+
+.title-rarity-strip{
+  display:flex;gap:10px;margin-top:36px;
+  animation:titleSlideIn .8s cubic-bezier(.34,1.56,.64,1) 1.3s both;
+}
+.trc{width:8px;height:8px;border-radius:50%;animation:trcPop 2.5s ease-in-out infinite;}
+.trc:nth-child(1){background:var(--c-common);animation-delay:.0s;}
+.trc:nth-child(2){background:var(--c-rare);animation-delay:.2s;}
+.trc:nth-child(3){background:var(--c-epic);animation-delay:.4s;}
+.trc:nth-child(4){background:var(--c-legend);animation-delay:.6s;}
+.trc:nth-child(5){background:#ddd;animation-delay:.8s;}
+.trc:nth-child(6){background:var(--gold);animation-delay:1s;}
+@keyframes trcPop{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.7);opacity:1;}}
 </style>
 </head>
 <body>
+<!-- TITLE SCREEN -->
+<div id="titleScreen" onclick="startGame()">
+  <div id="titleBg" id="titleBg"></div>
+  <div id="titleContent">
+    <div class="title-sub">✦ &nbsp; arcane &nbsp; ✦</div>
+    <div class="title-logo-wrap">
+      <div class="title-logo-glow"></div>
+      <div class="title-logo">ブレインロッドを<br>集める</div>
+    </div>
+    <div class="title-divider"></div>
+    <div class="title-tagline">伝説の脳細胞を集めよ</div>
+    <div class="title-rarity-strip">
+      <div class="trc"></div><div class="trc"></div><div class="trc"></div>
+      <div class="trc"></div><div class="trc"></div><div class="trc"></div>
+    </div>
+    <div class="title-tap">タップしてスタート</div>
+  </div>
+</div>
+
 <canvas id="bgC"></canvas>
 <div id="flash"></div>
 <div class="toast" id="toast"></div>
@@ -488,10 +596,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
       <div>売却ポイント: <span class="si-pts" id="cdSellPts">0</span>pt</div>
       <div id="cdMergeCost" style="margin-top:3px;"></div>
     </div>
+    <div id="cdDeckStatus" style="display:none;margin-top:8px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.35);border-radius:8px;padding:7px 10px;font-size:.62rem;color:#00e5ff;text-align:center;">🛡️ デッキ編成中 — 売却・合成不可</div>
     <div class="char-action-btns">
       <button class="char-btn-sell" id="cdBtnSell" onclick="doSell()">売却</button>
       <button class="char-btn-merge" id="cdBtnMerge" onclick="doMerge()">合成</button>
-      <button class="char-btn-deck" onclick="addToDeck()">デッキ</button>
+      <button class="char-btn-deck" id="cdBtnDeck" onclick="addToDeck()">デッキ</button>
     </div>
   </div>
 </div>
@@ -504,6 +613,16 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
       <button class="mbtn-c" onclick="closeOverlay('confirmOverlay')">キャンセル</button>
       <button class="mbtn-ok" id="confirmOkBtn">OK</button>
     </div>
+  </div>
+</div>
+
+<!-- MERGE MATERIAL SELECT OVERLAY -->
+<div class="overlay" id="mergeSelectOverlay">
+  <div class="modal-box" style="max-width:320px;">
+    <h3 style="font-size:.85rem;">合成素材を選択</h3>
+    <div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-bottom:10px;">消費する個体をタップ（デッキ使用中は選択不可）</div>
+    <div id="mergeMaterialGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;"></div>
+    <button class="close-btn" onclick="closeOverlay('mergeSelectOverlay')">キャンセル</button>
   </div>
 </div>
 
@@ -522,8 +641,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   <canvas id="gCvs"></canvas>
   <div id="gContent"></div>
   <div style="position:absolute;bottom:72px;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;">
-    <button class="skip-btn" id="skipBtn" onclick="skipAll()" style="pointer-events:auto;background:linear-gradient(135deg,#7b2fff,#ff2dce);color:#fff;border:none;border-radius:20px;padding:9px 28px;font-family:'Noto Sans JP',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(123,47,255,.6);">⏭ スキップ</button>
     <div class="tap-hint" id="tapHint" style="display:none;position:static;transform:none;pointer-events:none;">タップして次へ</div>
+    <div id="skipHint" style="font-size:.55rem;color:rgba(255,255,255,.25);letter-spacing:1px;pointer-events:none;">長押しでスキップ</div>
   </div>
 </div>
 
@@ -571,11 +690,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 
   <div class="hm-menu">
     <button class="hm-btn hm-btn-g" onclick="goTo('gacha')"><span class="hbi">⚔️</span>ガチャ</button>
-    <button class="hm-btn hm-btn-s" onclick="goTo('shop')"><span class="hbi">💳</span>課金</button>
+    <button class="hm-btn hm-btn-s" onclick="goTo('shop')"><span class="hbi">💳</span>ショップ</button>
     <button class="hm-btn hm-btn-b" onclick="goTo('box')"><span class="hbi">📦</span>BOX</button>
     <button class="hm-btn hm-btn-r" onclick="openDeckEditModal()"><span class="hbi">🛡️</span>デッキ</button>
     <button class="hm-btn hm-btn-x" onclick="resetAll()"><span class="hbi">🔄</span>リセット</button>
-    <button class="hm-btn hm-btn-q" onclick="goTo('quest')"><span class="hbi">🎯</span>クエスト</button>
+    <button class="hm-btn hm-btn-q" onclick="goTo('quest')"><span class="hbi">🎯</span>バトル</button>
   </div>
 
   <div class="rarity-strip">
@@ -612,7 +731,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   <div class="banner-card" onclick="openOverlay('ratesModal')">
     <div class="rateup">🔥 RATE UP!</div>
     <div class="banner-title">FEATURED BANNER</div>
-    <div class="banner-name">星幻の召喚祭</div>
+    <div class="banner-name">ブレインロッドを召喚</div>
     <div class="banner-chars">
       <div class="bc"><div class="bc-thumb r-god" id="bth0"></div><div class="crate">★GOD</div></div>
       <div class="bc"><div class="bc-thumb r-secret" id="bth1"></div><div class="crate">SECRET</div></div>
@@ -680,11 +799,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
     <div class="point-pill"><span>✨</span><span class="pv" id="shopPts">0</span><span style="font-size:.56rem;color:rgba(0,200,83,.5)">pt</span></div>
   </div>
   <div class="shop-gem-bar">
-    <span class="slabel">残宝玉魂：</span><span>💎</span>
+    <span class="slabel">残ダイヤ：</span><span>💎</span>
     <span class="sval" id="shopGems">30</span>
     <span style="font-size:.6rem;color:rgba(255,255,255,.24)">個</span>
   </div>
-  <div class="pay-section-title">── 宝玉魂パック ──</div>
+  <div class="pay-section-title">── ダイヤパック ──</div>
   <div class="pay-cards">
     <div class="pay-card small-pack" onclick="openBuyModal(5,'¥120')">
       <div class="pci">💎</div>
@@ -698,7 +817,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
       <button class="pcbuy" onclick="event.stopPropagation();openBuyModal(50,'¥1,200')">¥1,200<span class="pcprice">購入する</span></button>
     </div>
     <div class="pay-card featured" onclick="openBuyModal(500,'¥11,000')">
-      <div class="pc-badge">大容量</div>
+      <div class="pc-badge">お得</div>
       <div class="pci">💎</div>
       <div class="pcinfo"><div class="pcg">💎 500個</div><div class="pcs">10連ガチャ10回分！</div></div>
       <button class="pcbuy" onclick="event.stopPropagation();openBuyModal(500,'¥11,000')">¥11,000<span class="pcprice">購入する</span></button>
@@ -721,9 +840,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
     <div id="questIdle">
       <div style="background:linear-gradient(135deg,#0a2500,#1a5000);border:1px solid rgba(0,200,83,.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
         <div style="font-size:2.5rem;margin-bottom:8px;">⚔️</div>
-        <div style="font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold);margin-bottom:6px;">魔物クリッカー</div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold);margin-bottom:6px;">ブレインロッドバトル</div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:14px;">
-          60秒間クリックして魔物を倒せ！<br>
+          60秒間クリックしてブレインロッドを倒せ！<br>
           デッキのキャラのレアリティ・レベルで<br>
           ダメージが増加する！
         </div>
@@ -808,8 +927,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
   <button class="nb on" id="nav-home"  onclick="goTo('home')"><span class="ni">🏠</span>ホーム</button>
   <button class="nb"    id="nav-gacha" onclick="goTo('gacha')"><span class="ni">✨</span>ガチャ</button>
   <button class="nb"    id="nav-box"   onclick="goTo('box')"><span class="ni">📦</span>BOX</button>
-  <button class="nb"    id="nav-shop"  onclick="goTo('shop')"><span class="ni">💳</span>課金</button>
-  <button class="nb"    id="nav-quest" onclick="goTo('quest')"><span class="ni">🎯</span>クエスト</button>
+  <button class="nb"    id="nav-shop"  onclick="goTo('shop')"><span class="ni">💳</span>ショップ</button>
+  <button class="nb"    id="nav-quest" onclick="goTo('quest')"><span class="ni">🎯</span>バトル</button>
 </div>
 
 <script>
@@ -819,7 +938,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:#fff;min-h
 const RO={common:0,rare:1,epic:2,legend:3,secret:4,god:5};
 const RL={common:'COMMON',rare:'RARE',epic:'EPIC',legend:'LEGEND',secret:'SECRET',god:'★GOD★'};
 const RCOL={common:'var(--c-common)',rare:'var(--c-rare)',epic:'var(--c-epic)',legend:'var(--c-legend)',secret:'var(--c-secret)',god:'var(--c-god)'};
-const IMG_POOL={god:[1,2,3],secret:[4,5,6,7],legend:[8,9,10,11,12,13,14],epic:[15,16,17,18,19,20,21,22,23,24,25],rare:[26,27,28,29,30,31,32,33,34,35,36,37,38],common:[39,40,41,42,43,44,45,46,47,48,49,50,51]};
+const IMG_POOL={god:[1,2,3],secret:[54,5,6,7,4,64,62],legend:[12,9,10,11,8,13,14],epic:[15,16,17,18,19,20,21,22,23,24,25,60],rare:[26,27,28,29,30,31,32,33,34,35,36,37,38,59],common:[39,40,41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,61,63]};
 // sell points per rarity
 const SELL_PTS={common:10,rare:30,epic:80,legend:250,secret:600,god:2000};
 // merge cost (points) and stat gain per rarity
@@ -839,6 +958,15 @@ function defS(){return{total:0,highRares:0,pity:0,gems:30,points:0,history:[],
 let S=(()=>{try{const s=JSON.parse(sessionStorage.getItem('agV6')||'null');return s?{...defS(),...s}:defS();}catch(e){return defS();}})();
 function save(){try{sessionStorage.setItem('agV6',JSON.stringify(S));}catch(e){}}
 
+// デッキエントリ正規化：旧形式(文字列)→新形式({imgId,ci})
+function normalizeDeck(){
+  S.deck=S.deck.map(d=>{
+    if(!d)return null;
+    if(typeof d==='string')return{imgId:d,ci:0};
+    return d;
+  });
+}
+normalizeDeck();
 // ══════════════════════════════════════════
 // BG CANVAS
 // ══════════════════════════════════════════
@@ -1103,8 +1231,21 @@ function showRevealCard(res,idx){
   document.getElementById('tapHint').textContent='タップして次へ';
 }
 
+// 長押しスキップ
+let skipLongTimer=null;
+function attachSkipLongPress(){
+  const gs=document.getElementById('gScreen');
+  gs.addEventListener('touchstart',()=>{
+    skipLongTimer=setTimeout(()=>{skipLongTimer=null;skipAll();},600);
+  },{passive:true});
+  gs.addEventListener('touchend',()=>{clearTimeout(skipLongTimer);skipLongTimer=null;},{passive:true});
+  gs.addEventListener('touchcancel',()=>{clearTimeout(skipLongTimer);skipLongTimer=null;},{passive:true});
+  gs.addEventListener('mousedown',()=>{skipLongTimer=setTimeout(()=>{skipLongTimer=null;skipAll();},600);});
+  gs.addEventListener('mouseup',()=>{clearTimeout(skipLongTimer);skipLongTimer=null;});
+}
+attachSkipLongPress();
+
 function skipAll(){
-  // 10連の場合はスキップ後に結果一覧を表示
   if(pendingRes&&pendingRes.length>1){
     showPullSummary(pendingRes);
   }else{
@@ -1122,7 +1263,7 @@ function showPullSummary(res){
   cont.style.overflowY='auto';
   cont.style.paddingBottom='20px';
   document.getElementById('tapHint').style.display='none';
-  document.getElementById('skipBtn').style.display='none';
+  
 
   const wrap=document.createElement('div');
   wrap.style.cssText='width:100%;max-width:440px;padding:12px;display:flex;flex-direction:column;align-items:center;';
@@ -1187,14 +1328,14 @@ function showPullSummary(res){
   // 画面全体タップで閉じる
   setTimeout(()=>{
     document.getElementById('gScreen').onclick=()=>{
-      document.getElementById('skipBtn').style.display='';
+      
       closeGS();
     };
   },300);
 }
 function flashFX(){const f=document.getElementById('flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),200);}
 function openGS(){const s=document.getElementById('gScreen');s.classList.add('open');s.onclick=null;document.getElementById('tapHint').style.display='none';}
-function closeGS(){const s=document.getElementById('gScreen');s.classList.remove('open');s.style.background='';s.onclick=null;const cont=document.getElementById('gContent');cont.style.overflowY='';cont.style.paddingBottom='';stopGC();gParts=[];document.getElementById('skipBtn').style.display='';syncAll();}
+function closeGS(){const s=document.getElementById('gScreen');s.classList.remove('open');s.style.background='';s.onclick=null;const cont=document.getElementById('gContent');cont.style.overflowY='';cont.style.paddingBottom='';stopGC();gParts=[];syncAll();}
 
 // ══════════════════════════════════════════
 // SYNC UI
@@ -1237,7 +1378,7 @@ function syncHome(){
   ['boxPts','shopPts'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=S.points;});
 }
 function showNoGem(cost){
-  document.getElementById('noGemAlert').innerHTML=`<div class="no-gem-alert">💎 宝玉魂が足りません！あと${cost-S.gems}個必要 → <span style="text-decoration:underline;cursor:pointer" onclick="goTo('shop')">課金へ</span></div>`;
+  document.getElementById('noGemAlert').innerHTML=`<div class="no-gem-alert">💎 ダイヤが足りません！あと${cost-S.gems}個必要 → <span style="text-decoration:underline;cursor:pointer" onclick="goTo('shop')">課金へ</span></div>`;
   const b=cost<=C1?document.getElementById('btn1'):document.getElementById('btn10');
   b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');
 }
@@ -1270,25 +1411,41 @@ function updateBulkBar(){
 }
 function confirmBulkSell(){
   if(!bulkSelected.length){showToast('キャラを選択してください');return;}
-  const totalPts=bulkSelected.reduce((s,{imgId})=>{
+  // デッキ使用中の個体を除外
+  const sellable=bulkSelected.filter(({imgId,ci})=>
+    !S.deck.some(d=>d&&d.imgId===imgId&&d.ci===ci)
+  );
+  const skipped=bulkSelected.length-sellable.length;
+  if(!sellable.length){showToast('選択中のキャラは全てデッキ使用中です');return;}
+  const totalPts=sellable.reduce((s,{imgId})=>{
     const item=S.box[imgId];return s+(item?SELL_PTS[item.rarity]:0);
   },0);
-  if(!confirm(`${bulkSelected.length}体を売却して ${totalPts}pt 獲得しますか？`))return;
-  // 売却処理（同一imgIdが複数ある場合はまとめてcount減算）
+  const msg=skipped>0?`${sellable.length}体を売却（${skipped}体はデッキ使用中のためスキップ）して ${totalPts}pt 獲得しますか？`:`${sellable.length}体を売却して ${totalPts}pt 獲得しますか？`;
+  if(!confirm(msg))return;
   const tally={};
-  bulkSelected.forEach(({imgId})=>{tally[imgId]=(tally[imgId]||0)+1;});
+  sellable.forEach(({imgId,ci})=>{if(!tally[imgId])tally[imgId]=[];tally[imgId].push(ci);});
   let earned=0;
-  Object.entries(tally).forEach(([imgId,n])=>{
+  Object.entries(tally).forEach(([imgId,cis])=>{
     const item=S.box[imgId];if(!item)return;
-    earned+=SELL_PTS[item.rarity]*n;
-    item.count-=n;
+    // ci降順で削除してインデックスずれを防ぐ
+    cis.sort((a,b)=>b-a).forEach(ci=>{
+      if(item.levels&&item.levels.length>ci)item.levels.splice(ci,1);
+      item.count--;
+      earned+=SELL_PTS[item.rarity];
+      S.deck=S.deck.map(d=>{
+        if(!d||d.imgId!==imgId)return d;
+        if(d.ci===ci)return null;
+        if(d.ci>ci)return{imgId:d.imgId,ci:d.ci-1};
+        return d;
+      });
+    });
     if(item.count<=0)delete S.box[imgId];
   });
   S.points+=earned;
   save();syncAll();
   cancelBulkSell();
   playSell();
-  showToast(`💰 ${bulkSelected.length}体売却！ +${earned}pt`);
+  showToast(`💰 ${sellable.length}体売却！ +${earned}pt`);
 }
 
 function renderBox(){
@@ -1317,6 +1474,9 @@ function renderBox(){
       iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
       const badge=document.createElement('div');badge.className='rbadge';badge.textContent=RL[item.rarity];
       const lv=document.createElement('div');lv.className='mc-lv';lv.textContent=`Lv.${copyLv}`;
+      // デッキ使用中かチェック
+      const isInDeck=S.deck.some(d=>d&&d.imgId===String(item.imgId)&&d.ci===ci);
+      if(isInDeck){c.classList.add('in-deck');const dk=document.createElement('div');dk.className='mc-deck';dk.textContent='DECK';c.appendChild(dk);}
       if(item.isNew&&ci===0){const nw=document.createElement('div');nw.className='mc-new';nw.textContent='NEW';c.appendChild(nw);}
       c.appendChild(lv);c.appendChild(iw);c.appendChild(badge);
 
@@ -1372,8 +1532,20 @@ function openCharDetail(id, ci=0){
   document.getElementById('cdSellPts').textContent=sp;
   const mc=MERGE_COST[item.rarity];
   document.getElementById('cdMergeCost').textContent=`合成コスト: ${mc}pt（ダブり1体＋ポイント消費でLv上昇）`;
-  document.getElementById('cdBtnSell').disabled=item.count<1;
-  document.getElementById('cdBtnMerge').disabled=item.count<2||S.points<mc;
+  // デッキ使用中チェック
+  const ciInDeck=S.deck.some(d=>d&&d.imgId===String(id)&&d.ci===ci);
+  // 素材になれる個体（ci以外 かつ デッキ未使用）が1体以上あるか
+  const hasMaterial=item.count>=2&&Array.from({length:item.count},(_,i2)=>i2).some(
+    i2=>i2!==ci&&!S.deck.some(d=>d&&d.imgId===String(id)&&d.ci===i2)
+  );
+  document.getElementById('cdBtnSell').disabled=item.count<1||ciInDeck;
+  document.getElementById('cdBtnMerge').disabled=!hasMaterial||S.points<mc;
+  const deckStatusEl=document.getElementById('cdDeckStatus');
+  if(deckStatusEl)deckStatusEl.style.display=ciInDeck?'block':'none';
+  // BOXページからはデッキボタンを非表示
+  const onHomePage=document.getElementById('page-home').classList.contains('active');
+  const deckBtn=document.getElementById('cdBtnDeck');
+  if(deckBtn)deckBtn.style.display=onHomePage?'':'none';
   openOverlay('charModal');
 }
 
@@ -1382,11 +1554,23 @@ function doSell(){
   const sp=SELL_PTS[item.rarity];
   document.getElementById('confirmMsg').textContent=`#${item.imgId}（${RL[item.rarity]}）を1体売却します。\n${sp}ptを獲得します。`;
   document.getElementById('confirmOkBtn').onclick=()=>{
-    item.count--;S.points+=sp;
+    // 売却するciはselectedCharCi（またはlevels最後尾）
+    const sellCi=selectedCharCi;
+    // levels配列から削除
+    if(item.levels&&item.levels.length>sellCi)item.levels.splice(sellCi,1);
+    item.count--;
+    S.points+=sp;
+    // デッキから該当{imgId,sellCi}を除去し、それ以降のciを詰める
+    S.deck=S.deck.map(d=>{
+      if(!d||d.imgId!==selectedCharId)return d;
+      if(d.ci===sellCi)return null;
+      if(d.ci>sellCi)return{imgId:d.imgId,ci:d.ci-1};
+      return d;
+    });
     if(item.count===0){delete S.box[selectedCharId];selectedCharId=null;}
-    save();syncAll();renderBox();closeOverlay('confirmOverlay');
+    save();syncAll();renderBox();renderCarousel();closeOverlay('confirmOverlay');
     if(selectedCharId){
-      openCharDetail(selectedCharId);
+      openCharDetail(selectedCharId,Math.min(selectedCharCi,item.count-1));
     }else{
       closeOverlay('charModal');showToast(`💰 売却完了！ +${sp}pt`);
     }
@@ -1400,25 +1584,77 @@ function doMerge(){
   const item=S.box[selectedCharId];if(!item||item.count<2)return;
   const mc=MERGE_COST[item.rarity];
   if(S.points<mc){showToast('ポイントが足りません！');return;}
-  // levels配列の互換保証
   if(!item.levels||item.levels.length<item.count){
     item.levels=Array.from({length:item.count},(_,i)=>item.levels?.[i]??item.level??1);
   }
-  const ci=selectedCharCi;
-  document.getElementById('confirmMsg').textContent=`#${item.imgId}を合成します。\nダブり1体消費 ＋ ${mc}ptを使用してLvを上げます。`;
+  const baseCi=selectedCharCi; // 強化される個体
+
+  // 素材になれる個体（baseCi以外 かつ デッキ未使用）
+  const candidates=[];
+  for(let ci=0;ci<item.count;ci++){
+    if(ci===baseCi)continue;
+    const inDeck=S.deck.some(d=>d&&d.imgId===String(selectedCharId)&&d.ci===ci);
+    candidates.push({ci,lv:item.levels[ci]||1,inDeck});
+  }
+  const available=candidates.filter(c=>!c.inDeck);
+  if(!available.length){showToast('デッキに入っていない個体が素材として必要です');return;}
+
+  // 素材が1体だけなら直接確認へ
+  if(available.length===1){
+    closeOverlay('charModal');
+    _confirmMerge(baseCi, available[0].ci, item, mc);
+    return;
+  }
+
+  // 複数いる場合は選択UI表示
+  const grid=document.getElementById('mergeMaterialGrid');
+  grid.innerHTML='';
+  candidates.forEach(({ci,lv,inDeck})=>{
+    const cell=document.createElement('div');
+    cell.style.cssText='border-radius:10px;overflow:hidden;position:relative;aspect-ratio:2/3;cursor:'+(inDeck?'not-allowed':'pointer')+';';
+    if(inDeck)cell.style.opacity='.35';
+    const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 16px);overflow:hidden;';
+    iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
+    const lvEl=document.createElement('div');lvEl.style.cssText='text-align:center;font-size:.4rem;font-weight:900;color:var(--gold);background:rgba(0,0,0,.75);padding:2px 0;';lvEl.textContent=`Lv.${lv}`;
+    if(inDeck){
+      const lkEl=document.createElement('div');lkEl.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;z-index:5;background:rgba(80,80,80,.55);border-radius:inherit;';lkEl.textContent='🔒';cell.appendChild(lkEl);
+    }
+    cell.appendChild(iw);cell.appendChild(lvEl);
+    if(!inDeck){
+      cell.addEventListener('click',()=>{
+        closeOverlay('mergeSelectOverlay');
+        _confirmMerge(baseCi, ci, item, mc);
+      });
+    }
+    grid.appendChild(cell);
+  });
+  closeOverlay('charModal');
+  openOverlay('mergeSelectOverlay');
+}
+
+function _confirmMerge(baseCi, materialCi, item, mc){
+  document.getElementById('confirmMsg').textContent=`#${item.imgId}を合成します。\nLv.${item.levels[materialCi]||1}の個体を素材に消費 ＋ ${mc}ptを使用してLv.${item.levels[baseCi]||1}→Lv.${(item.levels[baseCi]||1)+1}になります。`;
   document.getElementById('confirmOkBtn').onclick=()=>{
-    // 最後のコピーを消費（末尾から削除）
-    item.levels.splice(item.count-1,1);
+    // 素材個体（materialCi）を削除
+    item.levels.splice(materialCi,1);
     item.count--;
-    // 選択したコピーのlevelを上げる
-    item.levels[ci]=(item.levels[ci]||1)+1;
-    item.level=Math.max(...item.levels); // 互換用に最高lvをセット
+    // baseCiはmaterialCiの削除でインデックスがずれる場合を補正
+    const adjustedBaseCi=materialCi<baseCi?baseCi-1:baseCi;
+    item.levels[adjustedBaseCi]=(item.levels[adjustedBaseCi]||1)+1;
+    item.level=Math.max(...item.levels);
     S.points-=mc;
-    save();syncAll();renderBox();closeOverlay('confirmOverlay');
-    openCharDetail(selectedCharId,ci);
-    playMerge();showToast(`⚡ 合成完了！ Lv.${item.levels[ci]}になった！`);
+    // デッキのci参照も補正
+    S.deck=S.deck.map(d=>{
+      if(!d||d.imgId!==String(selectedCharId))return d;
+      if(d.ci===materialCi)return null;
+      if(d.ci>materialCi)return{imgId:d.imgId,ci:d.ci-1};
+      return d;
+    });
+    save();syncAll();renderBox();renderCarousel();closeOverlay('confirmOverlay');
+    openCharDetail(selectedCharId,adjustedBaseCi);
+    playMerge();showToast(`⚡ 合成完了！ Lv.${item.levels[adjustedBaseCi]}になった！`);
   };
-  closeOverlay('charModal');openOverlay('confirmOverlay');
+  openOverlay('confirmOverlay');
 }
 
 // ══════════════════════════════════════════
@@ -1434,17 +1670,18 @@ const CAROUSEL_POSITIONS=[
 function renderCarousel(){
   for(let i=0;i<3;i++){
     const slot=document.getElementById(`slot${i}`);
-    const charId=S.deck[i];
+    const entry=S.deck[i]; // {imgId,ci} or null
     slot.innerHTML='';
     const frame=document.createElement('div');frame.className='slot-frame';
-    if(charId&&S.box[charId]){
-      const item=S.box[charId];
+    if(entry&&S.box[entry.imgId]){
+      const item=S.box[entry.imgId];
+      const lv=(item.levels&&item.levels[entry.ci])||item.level||1;
       frame.className=`slot-frame r-${item.rarity}`;
       const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;';
       iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
       const rbar=document.createElement('div');rbar.className='slot-rarity-bar';
       rbar.style.background=RCOL[item.rarity];
-      const nt=document.createElement('div');nt.className='slot-name-tag';nt.textContent=`Lv.${item.level}`;
+      const nt=document.createElement('div');nt.className='slot-name-tag';nt.textContent=`Lv.${lv}`;
       frame.appendChild(iw);frame.appendChild(rbar);frame.appendChild(nt);
     }else{
       frame.innerHTML='<span class="s-add">＋</span><span style="font-size:.52rem;color:rgba(255,255,255,.22)">タップして設定</span>';
@@ -1480,53 +1717,21 @@ let deckSwapFrom=null; // slot index being swapped
 
 function buildDeckSlotEl(i, activeSlotForPick){
   const ds=document.createElement('div');
-  const cid=S.deck[i];
-  ds.className='dslot'+(cid&&S.box[cid]?' filled':'');
-  if(deckSwapFrom===i)ds.classList.add('swap-active');
-  if(cid&&S.box[cid]){
-    const item=S.box[cid];
+  const entry=S.deck[i];
+  ds.className='dslot'+(entry&&S.box[entry.imgId]?' filled':'');
+  if(entry&&S.box[entry.imgId]){
+    const item=S.box[entry.imgId];
+    const lv=(item.levels&&item.levels[entry.ci])||item.level||1;
     const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:100%;';
     iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;border-radius:10px;'));
     const rm=document.createElement('div');rm.className='dslot-rm';rm.textContent='×';
-    rm.onclick=(e)=>{e.stopPropagation();S.deck[i]=null;deckSwapFrom=null;save();renderCarousel();renderDeckModal(activeSlotForPick);};
-    const lv=document.createElement('div');lv.className='dslot-lv';lv.textContent=`Lv.${item.level}`;
-    ds.appendChild(iw);ds.appendChild(rm);ds.appendChild(lv);
+    rm.onclick=(e)=>{e.stopPropagation();S.deck[i]=null;save();renderCarousel();renderDeckModal(activeSlotForPick);};
+    const lvEl=document.createElement('div');lvEl.className='dslot-lv';lvEl.textContent=`Lv.${lv}`;
+    ds.appendChild(iw);ds.appendChild(rm);ds.appendChild(lvEl);
   }else{
     ds.innerHTML='<span class="dslot-add">＋</span>';
+    ds.onclick=()=>renderPickList(i);
   }
-  ds.onclick=()=>{
-    if(deckSwapFrom===null){
-      if(S.deck[i]&&S.box[S.deck[i]]){
-        // キャラ入りスロット → スワップ元に設定
-        deckSwapFrom=i;
-        renderDeckModal(i);
-        const hint=document.getElementById('deckSwapHint');
-        if(hint){hint.textContent='✦ 入れ替え先スロットをタップ（もう一度タップでキャンセル）';hint.style.color='rgba(255,215,0,.7)';}
-      }else{
-        // 空きスロット → ピックリスト表示
-        renderPickList(i);
-      }
-    }else{
-      if(deckSwapFrom===i){
-        // 同じスロット → キャンセル
-        deckSwapFrom=null;
-        renderDeckModal(i);
-        const hint=document.getElementById('deckSwapHint');
-        if(hint){hint.textContent='スロットをタップして選択→別スロットで入れ替え';hint.style.color='rgba(255,255,255,.3)';}
-      }else{
-        // 別スロット → 入れ替え実行
-        const tmp=S.deck[deckSwapFrom];
-        S.deck[deckSwapFrom]=S.deck[i];
-        S.deck[i]=tmp;
-        deckSwapFrom=null;
-        save();renderCarousel();
-        renderDeckModal(i);
-        const hint=document.getElementById('deckSwapHint');
-        if(hint){hint.textContent='スロットをタップして選択→別スロットで入れ替え';hint.style.color='rgba(255,255,255,.3)';}
-        showToast('⇄ キャラを入れ替えました！');
-      }
-    }
-  };
   return ds;
 }
 
@@ -1545,7 +1750,7 @@ function renderDeckModal(activeSlot){
   const slotsDiv=document.getElementById('deckSlots');
   slotsDiv.innerHTML='';
   for(let i=0;i<3;i++)slotsDiv.appendChild(buildDeckSlotEl(i,activeSlot));
-  if(deckSwapFrom===null)renderPickList(activeSlot);
+  renderPickList(activeSlot);
 }
 
 function renderPickList(forSlot){
@@ -1558,52 +1763,75 @@ function renderPickList(forSlot){
   pickDiv.innerHTML='<div style="font-size:.56rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:8px;text-align:left;">タップで空きスロットに追加 · スロットをタップして変更</div>';
   const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:6px;';
 
-  // 所持枚数ぶん展開
-  const allCopies=[];
   Object.values(S.box).sort((a,b)=>RO[b.rarity]-RO[a.rarity]).forEach(item=>{
-    const copies=item.count||1;
-    for(let ci=0;ci<copies;ci++) allCopies.push({item,ci});
-  });
-
-  allCopies.forEach(({item,ci})=>{
-    // このコピーが他スロットで使用中かチェック
-    const usedElsewhere=S.deck.filter((d,di)=>d===String(item.imgId)&&di!==forSlot).length;
-    const isLocked=(ci < usedElsewhere);
-
-    const c=document.createElement('div');
-    c.className=`pick-card r-${item.rarity}`+(isLocked?' locked':'');
-    if(isLocked){c.style.opacity='.3';c.style.cursor='not-allowed';}
-
-    const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 14px);overflow:hidden;';
-    iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
-    const b=document.createElement('div');b.className='rbadge';b.style.fontSize='.38rem';b.textContent=RL[item.rarity];
-    const copyLv=(item.levels&&item.levels[ci])||item.level||1;
-    const lv=document.createElement('div');lv.className='pick-lv';lv.textContent=`Lv.${copyLv}`;
-    if(isLocked){
-      const lk=document.createElement('div');lk.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:10;';lk.textContent='🔒';
-      c.appendChild(lk);
+    // levels配列を正規化
+    const count=item.count||1;
+    if(!item.levels||item.levels.length!==count){
+      item.levels=Array.from({length:count},(_,i2)=>item.levels?.[i2]??item.level??1);
     }
-    c.appendChild(iw);c.appendChild(b);c.appendChild(lv);
 
-    if(!isLocked){
-      c.addEventListener('click',()=>{
-        // 空きスロットを優先的に埋める、なければforSlotに上書き
-        const emptySlot=S.deck.indexOf(null);
-        const targetSlot=emptySlot>=0?emptySlot:forSlot;
-        S.deck[targetSlot]=String(item.imgId);
-        save();renderCarousel();renderDeckModal(targetSlot);
-      });
+    for(let ci=0;ci<count;ci++){
+      const copyLv=item.levels[ci];
+
+      // このコピー({imgId,ci})が現在デッキのいずれかのスロットに使われているか
+      const usedInOtherSlot=S.deck.some((d)=>
+        d && d.imgId===String(item.imgId) && d.ci===ci
+      );
+
+      const c=document.createElement('div');
+      c.className=`pick-card r-${item.rarity}`;
+      if(usedInOtherSlot){
+        c.style.cursor='not-allowed';
+        c.style.pointerEvents='none';
+      }
+
+      const iw=document.createElement('div');iw.style.cssText='position:relative;width:100%;height:calc(100% - 14px);overflow:hidden;';
+      iw.appendChild(makeImg(item.imgId,'width:100%;height:100%;object-fit:cover;'));
+      const b=document.createElement('div');b.className='rbadge';b.style.fontSize='.38rem';b.textContent=RL[item.rarity];
+      const lvEl=document.createElement('div');lvEl.className='pick-lv';lvEl.textContent=`Lv.${copyLv}`;
+
+      if(usedInOtherSlot){
+        const lk=document.createElement('div');lk.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:10;background:rgba(80,80,80,.75);border-radius:inherit;';lk.textContent='🔒';
+        c.appendChild(lk);
+      }
+      c.appendChild(iw);c.appendChild(b);c.appendChild(lvEl);
+
+      if(!usedInOtherSlot){
+        // タッチ開始時にグレーフラッシュで視覚フィードバック
+        c.addEventListener('touchstart',()=>{
+          c.style.filter='grayscale(1) brightness(.5)';
+        },{passive:true});
+        c.addEventListener('touchend',()=>{
+          setTimeout(()=>{c.style.filter='';},180);
+        },{passive:true});
+        c.addEventListener('touchcancel',()=>{c.style.filter='';},{passive:true});
+        c.addEventListener('click',()=>{
+          const alreadyUsed=S.deck.some(d=>d&&d.imgId===String(item.imgId)&&d.ci===ci);
+          if(alreadyUsed)return;
+          // 空きスロットから順番に埋める（なければforSlotに上書き）
+          const emptySlot=S.deck.findIndex(d=>d===null||d===undefined);
+          const targetSlot=emptySlot>=0?emptySlot:forSlot;
+          S.deck[targetSlot]={imgId:String(item.imgId),ci};
+          save();renderCarousel();renderDeckModal(targetSlot);
+        });
+      }
+      grid.appendChild(c);
     }
-    grid.appendChild(c);
   });
   pickDiv.appendChild(grid);
 }
 
 function addToDeck(){
-  // add to first empty slot
+  const item=S.box[selectedCharId];if(!item)return;
+  // 空きスロットを探す
   const empty=S.deck.indexOf(null);
-  if(empty>=0){S.deck[empty]=selectedCharId;save();renderCarousel();showToast('デッキに追加しました！');}
-  else showToast('デッキが満員です');
+  if(empty<0){showToast('デッキが満員です');closeOverlay('charModal');return;}
+  // すでにデッキに入っていないciを探す
+  const usedCis=S.deck.filter(d=>d&&d.imgId===selectedCharId).map(d=>d.ci);
+  const freeCi=Array.from({length:item.count},(_,i)=>i).find(i=>!usedCis.includes(i));
+  if(freeCi===undefined){showToast('全ての枚数がデッキに入っています');closeOverlay('charModal');return;}
+  S.deck[empty]={imgId:selectedCharId,ci:freeCi};
+  save();renderCarousel();showToast('デッキに追加しました！');
   closeOverlay('charModal');
 }
 
@@ -1661,12 +1889,13 @@ let questClickPower=1;
 
 function calcDeckPower(){
   let power=0;
-  S.deck.forEach(cid=>{
-    if(cid&&S.box[cid]){
-      const item=S.box[cid];
-      const base=RARITY_POWER[item.rarity]||1;
-      power+=Math.floor(base*(1+item.level*0.5));
-    }
+  S.deck.forEach(entry=>{
+    if(!entry)return;
+    const item=S.box[entry.imgId];
+    if(!item)return;
+    const lv=(item.levels&&item.levels[entry.ci])||item.level||1;
+    const base=RARITY_POWER[item.rarity]||1;
+    power+=Math.floor(base*(1+lv*0.5));
   });
   return Math.max(1,power);
 }
@@ -1821,7 +2050,43 @@ function resetQuestGame(){
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// TITLE SCREEN
+// ══════════════════════════════════════════
+(function initTitleScreen(){
+  const bg=document.getElementById('titleBg');
+  // 星を生成
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');
+    s.className='title-star';
+    const size=Math.random()*2.5+.5;
+    s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+1.5).toFixed(1)}s;--delay:-${(Math.random()*4).toFixed(1)}s;`;
+    bg.appendChild(s);
+  }
+  // 背景オーブを生成
+  const orbs=[
+    {w:320,h:320,l:'-10%',t:'10%',c:'rgba(123,47,255,.18)',od:'9s',ox:'30px',oy:'-40px',odelay:'0s'},
+    {w:280,h:280,l:'60%',t:'40%',c:'rgba(255,45,206,.14)',od:'11s',ox:'-40px',oy:'30px',odelay:'-3s'},
+    {w:220,h:220,l:'20%',t:'60%',c:'rgba(0,229,255,.12)',od:'7s',ox:'20px',oy:'-20px',odelay:'-5s'},
+    {w:180,h:180,l:'55%',t:'-5%',c:'rgba(255,215,0,.10)',od:'13s',ox:'-20px',oy:'40px',odelay:'-2s'},
+  ];
+  orbs.forEach(o=>{
+    const el=document.createElement('div');
+    el.className='title-orb';
+    el.style.cssText=`width:${o.w}px;height:${o.h}px;left:${o.l};top:${o.t};background:${o.c};--od:${o.od};--ox:${o.ox};--oy:${o.oy};--odelay:${o.odelay};`;
+    bg.appendChild(el);
+  });
+})();
+
+function startGame(){
+  const ts=document.getElementById('titleScreen');
+  ts.classList.add('hidden');
+  setTimeout(()=>{ts.style.display='none';},900);
+}
+
 syncAll();renderPurLog();renderCarousel();updateQuestIdleUI();
 </script>
 </body>
 </html>
+
